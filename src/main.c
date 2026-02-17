@@ -2,17 +2,18 @@
 #include "assimp/cimport.h"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
+#include "assimp/mesh.h"
+#include "camera.h"
 #include "cglm/types.h"
+#include "cglm/vec3.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
-#include "cglm/cam.h"
-
-#include "mesh.h"
 #include "renderer.h"
 #include "shader.h"
 #include "window.h"
 
+#include <math.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -64,9 +65,8 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  scene->mMeshes[0]->mVertices[0].z;
-
   for (int i = 0; i < scene->mNumMeshes; i++) {
+    // for (int i = 0; i < 1; i++) {
     struct aiMesh *mesh = scene->mMeshes[i];
 
     uint32_t vao;
@@ -114,50 +114,17 @@ int main() {
 
   glBindVertexArray(0);
 
-  float vertices[] = {200.0f, 200.0f, 0.0f, 200.0f, 0.0f,   0.0f,
-                      0.0f,   0.0f,   0.0f, 0.0f,   200.0f, 0.0f};
+  rvCamera *camera = camera_create(
+      0.1f, 1000.0f, camera_calculate_aspect(window.width, window.height),
+      1.07);
 
-  uint32_t indices[] = {0, 1, 3, 1, 2, 3};
-
-  rvVertexList vertexList = {.size = sizeof(vertices), .data = vertices};
-
-  rvIndexList indexList = {.size = sizeof(indices), .data = indices};
-
-  uint32_t vao;
-  glGenVertexArrays(1, &vao);
-  glBindVertexArray(vao);
-
-  uint32_t vbo;
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-
-  uint32_t ibo;
-  glGenBuffers(1, &ibo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-               GL_STATIC_DRAW);
-
-  glBindVertexArray(0);
-
-  rvRenderCmd render_command = {0};
-  render_command.vao = vao;
-  render_command.ibo = ibo;
-  render_command.count = sizeof(indices) / sizeof(uint32_t);
-  render_command.first = 0;
-  render_command.shader = program.id;
-  render_command.mode = GL_TRIANGLES;
-
-  mat4 projection_matrix;
-  glm_ortho(0, window.width, 0, window.height, -100.0f, 100.0f,
-            projection_matrix);
-
-  int32_t projection_matrix_uniform_loc = 0xfcfcabab;
+  int32_t projection_matrix_uniform_loc = -1;
   projection_matrix_uniform_loc = glGetUniformLocation(program.id, "u_Proj");
   assert(projection_matrix_uniform_loc != -1);
+
+  int32_t view_matrix_uniform_loc = -1;
+  view_matrix_uniform_loc = glGetUniformLocation(program.id, "u_View");
+  assert(view_matrix_uniform_loc != -1);
 
   printf("Render initialization completed.\n");
 
@@ -165,12 +132,19 @@ int main() {
   while (!glfwWindowShouldClose(window.glfwHandle)) {
     glUseProgram(program.id);
     glUniformMatrix4fv(projection_matrix_uniform_loc, 1, GL_FALSE,
-                       (float *)projection_matrix);
+                       (float *)camera->projMatrix);
+    glUniformMatrix4fv(view_matrix_uniform_loc, 1, GL_FALSE,
+                       (float *)camera->viewMatrix);
 
     renderer_draw(renderer);
 
     glfwSwapBuffers(window.glfwHandle);
     glfwPollEvents();
+
+    double now = glfwGetTime();
+    vec3 new_pos = {sin(now)* 100, 40.0f, cos(now) * 100};
+    glm_vec3_dup(new_pos, camera->position);
+    camera_recalculate_view_matrix(camera);
   }
 
   glfwTerminate();

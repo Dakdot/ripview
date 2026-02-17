@@ -45,6 +45,8 @@ int create_window(rvWindow *window) {
   char *GL_vendor = (char *)glGetString(GL_VENDOR);
   char *GL_renderer = (char *)glGetString(GL_RENDERER);
 
+  glEnable(GL_DEPTH_TEST);
+
   printf("Created OpenGL context.\nVersion: %s\nVendor: %s\nVendor: %s\n",
          GL_version, GL_vendor, GL_renderer);
 
