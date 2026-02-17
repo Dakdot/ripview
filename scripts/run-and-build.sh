@@ -2,9 +2,9 @@
 EXECUTABLE_NAME=ripview
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    NUM_PROC = "$(sysctl hw.logicalcpu | awk '{print $2}')"
+    NUM_PROC="$(sysctl -n hw.logicalcpu)"
 else
-    NUM_PROC = "$(nproc)"
+    NUM_PROC="$(nproc)"
 fi
 
 mkdir -p build
