@@ -1,6 +1,12 @@
 #!/bin/bash
 EXECUTABLE_NAME=ripview
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    NUM_PROC = "$(sysctl hw.logicalcpu | awk '{print $2}')"
+else
+    NUM_PROC = "$(nproc)"
+fi
+
 mkdir -p build
 
 cd build
@@ -10,7 +16,7 @@ if [[ $? -ne 0 ]]; then
     exit $?
 fi
 
-make -j `nproc`
+make -j $NUM_PROC
 if [[ $? -ne 0 ]]; then
     echo Make build stage failed.
     exit $?
