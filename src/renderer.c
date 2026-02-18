@@ -46,9 +46,6 @@ void renderer_draw(rvRenderer *r) {
       break;
     call_idx++;
 
-    printf("Draw Call %03d: VAO=%u, count=%d, mode=0x%x\n", call_idx, cmd->vao,
-           cmd->count, cmd->mode);
-
     glUseProgram(cmd->shader);
     glBindVertexArray(cmd->vao);
     glDrawElements(cmd->mode, cmd->count, GL_UNSIGNED_INT,

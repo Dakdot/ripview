@@ -19,5 +19,8 @@ typedef struct {
   rvShader *fragmentShader;
 } rvShaderProgram;
 
-int load_shader_from_file(rvShader *shader);
-int link_shaders(rvShaderProgram *program);
+int shader_load_from_file(rvShader *shader);
+int shader_program_link(rvShaderProgram *program);
+void shader_program_use(rvShaderProgram *p);
+void shader_set_uniform_mat4fv(rvShaderProgram* p, const char* uniformName, float* value);
+void shader_set_uniform_3fv(rvShaderProgram* p, const char* uniformName, float* value);

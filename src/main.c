@@ -43,19 +43,19 @@ int main() {
                        .filepath = "/Users/thiagoandrade/Projects/experiments/"
                                    "ripview/assets/shaders/main.frag"};
 
-  if (load_shader_from_file(&vertex))
+  if (shader_load_from_file(&vertex))
     return EXIT_FAILURE;
-  if (load_shader_from_file(&fragment))
+  if (shader_load_from_file(&fragment))
     return EXIT_FAILURE;
 
   rvShaderProgram program = {.vertexShader = &vertex,
                              .fragmentShader = &fragment};
 
-  link_shaders(&program);
+  shader_program_link(&program);
 
   const struct aiScene *scene =
       aiImportFile("/Users/thiagoandrade/Projects/experiments/ripview/assets/"
-                   "models/Obj/Spider/spider.obj",
+                   "models/glTF2/Lantern.glb",
                    aiProcess_CalcTangentSpace | aiProcess_Triangulate |
                        aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
 
@@ -114,35 +114,25 @@ int main() {
 
   glBindVertexArray(0);
 
-  rvCamera *camera = camera_create(
-      0.1f, 1000.0f, camera_calculate_aspect(window.width, window.height),
-      1.07);
-
-  int32_t projection_matrix_uniform_loc = -1;
-  projection_matrix_uniform_loc = glGetUniformLocation(program.id, "u_Proj");
-  assert(projection_matrix_uniform_loc != -1);
-
-  int32_t view_matrix_uniform_loc = -1;
-  view_matrix_uniform_loc = glGetUniformLocation(program.id, "u_View");
-  assert(view_matrix_uniform_loc != -1);
+  rvCamera *camera =
+      camera_create(0.1f, 1000.0f,
+                    camera_calculate_aspect(window.width, window.height), 1.07);
 
   printf("Render initialization completed.\n");
 
   // renderer_submit(renderer, &render_command);
   while (!glfwWindowShouldClose(window.glfwHandle)) {
-    glUseProgram(program.id);
-    glUniformMatrix4fv(projection_matrix_uniform_loc, 1, GL_FALSE,
-                       (float *)camera->projMatrix);
-    glUniformMatrix4fv(view_matrix_uniform_loc, 1, GL_FALSE,
-                       (float *)camera->viewMatrix);
+    shader_set_uniform_mat4fv(&program, "u_Proj", (float *)camera->projMatrix);
+    shader_set_uniform_mat4fv(&program, "u_View", (float *)camera->viewMatrix);
 
+    shader_program_use(&program);
     renderer_draw(renderer);
 
     glfwSwapBuffers(window.glfwHandle);
     glfwPollEvents();
 
     double now = glfwGetTime();
-    vec3 new_pos = {sin(now)* 100, 40.0f, cos(now) * 100};
+    vec3 new_pos = {sin(now) * 30, 10.0f, cos(now) * 30};
     glm_vec3_dup(new_pos, camera->position);
     camera_recalculate_view_matrix(camera);
   }
