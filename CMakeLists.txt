@@ -50,16 +50,32 @@ add_subdirectory(vendor/assimp)
 project(ripview)
 
 # SOURCES:
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME} src/main.c)
+
+target_sources(${PROJECT_NAME} PRIVATE
     src/main.c
+
     src/shader.c
+    src/shader.h
     src/image.c
+    src/image.h
     src/window.c
+    src/window.h
     src/mesh.c
+    src/mesh.h
     src/renderer.c
+    src/renderer.h
     src/camera.c
+    src/camera.h
+    src/scene.c
+    src/scene.h
+    src/scene_object.h
+    src/scene_object.c
 
     src/util/queue.c
+    src/util/queue.h
+    src/util/tree.c
+    src/util/tree.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

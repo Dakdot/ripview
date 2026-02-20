@@ -20,3 +20,6 @@ rvRenderer *renderer_create(void);
 void renderer_destroy(rvRenderer *r);
 void renderer_submit(rvRenderer *r, rvRenderCmd *cmd);
 void renderer_draw(rvRenderer *r);
+
+rvRenderCmd *render_cmd_create(void);
+void render_cmd_destroy(rvRenderCmd *);

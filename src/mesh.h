@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "glad/glad.h"
+#include "assimp/mesh.h"
 
 typedef struct {
   uint32_t vao;
@@ -21,11 +21,14 @@ typedef struct {
   uint32_t *data;
 } rvIndexList;
 
-typedef struct {
+typedef struct rvMesh {
   rvVertexList *vertices;
+  uint32_t numVertices;
   rvIndexList *indices;
-  uint32_t shader;
+  uint32_t numIndices;
   rvRenderData renderData;
 } rvMesh;
 
-void upload_mesh(rvMesh *mesh);
+rvMesh *mesh_create(void);
+void mesh_destroy(rvMesh *);
+void mesh_upload(rvMesh *, struct aiMesh *);

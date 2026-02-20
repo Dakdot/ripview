@@ -51,9 +51,23 @@ void renderer_draw(rvRenderer *r) {
     glDrawElements(cmd->mode, cmd->count, GL_UNSIGNED_INT,
                    (void *)(uintptr_t)cmd->first);
 
+    printf("Draw Call %03d: shader: %d, vao: %d, count: %d\n", call_idx,
+           cmd->shader, cmd->vao, cmd->count);
+
     head = head->next;
   }
 
   glBindVertexArray(0);
   glUseProgram(0);
+}
+
+rvRenderCmd *render_cmd_create(void) {
+  rvRenderCmd *r = malloc(sizeof(rvRenderCmd));
+  return r;
+}
+
+void render_cmd_destroy(rvRenderCmd *r) {
+  if (!r)
+    return;
+  free(r);
 }

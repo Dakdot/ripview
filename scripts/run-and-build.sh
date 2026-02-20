@@ -26,5 +26,5 @@ clear
 if  command -v mangohud >/dev/null 2>&1; then
     mangohud ./$EXECUTABLE_NAME
 else
-    ./$EXECUTABLE_NAME
+  lldb -o run -- ${EXECUTABLE_NAME}
 fi

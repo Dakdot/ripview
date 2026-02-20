@@ -7,7 +7,7 @@ typedef struct rvQueueNode {
   struct rvQueueNode *next;
 } rvQueueNode;
 
-typedef struct {
+typedef struct rvQueue {
   rvQueueNode *front;
   rvQueueNode *back;
 } rvQueue;

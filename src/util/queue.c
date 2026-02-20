@@ -17,6 +17,8 @@ void queue_destroy(rvQueue *queue) {
 }
 
 bool queue_enqueue(rvQueue *queue, void *element) {
+  if (!queue)
+    return false;
   rvQueueNode *node = malloc(sizeof(rvQueueNode));
   if (!node)
     return false;

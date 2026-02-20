@@ -9,8 +9,12 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+#include "mesh.h"
 #include "renderer.h"
+#include "scene.h"
+#include "scene_object.h"
 #include "shader.h"
+#include "util/queue.h"
 #include "window.h"
 
 #include <math.h>
@@ -53,66 +57,33 @@ int main() {
 
   shader_program_link(&program);
 
-  const struct aiScene *scene =
+  const struct aiScene *aiScene =
       aiImportFile("/Users/thiagoandrade/Projects/experiments/ripview/assets/"
                    "models/glTF2/Lantern.glb",
                    aiProcess_CalcTangentSpace | aiProcess_Triangulate |
                        aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
 
-  if (!scene) {
+  if (!aiScene) {
     perror("Failed to import model.\n");
     perror(aiGetErrorString());
     return EXIT_FAILURE;
   }
 
-  for (int i = 0; i < scene->mNumMeshes; i++) {
+  rvSceneObject *o = scene_object_create();
+
+  int counter = 0;
+  for (int i = 0; i < aiScene->mNumMeshes; i++) {
     // for (int i = 0; i < 1; i++) {
-    struct aiMesh *mesh = scene->mMeshes[i];
+    struct aiMesh *aiMesh = aiScene->mMeshes[i];
+    rvMesh *rvMesh = mesh_create();
+    mesh_upload(rvMesh, aiMesh);
+    scene_object_attach_mesh(o, rvMesh);
 
-    uint32_t vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    uint32_t vbo;
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * mesh->mNumVertices,
-                 mesh->mVertices, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-
-    uint32_t ibo;
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    uint32_t *indices = malloc(sizeof(uint32_t) * mesh->mNumFaces * 3);
-    if (!indices)
-      return EXIT_FAILURE;
-    for (int j = 0; j < mesh->mNumFaces; j++) {
-      indices[(j * 3)] = mesh->mFaces[j].mIndices[0];
-      indices[(j * 3) + 1] = mesh->mFaces[j].mIndices[1];
-      indices[(j * 3) + 2] = mesh->mFaces[j].mIndices[2];
-    }
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sizeof(uint32_t) * mesh->mNumFaces * 3, indices,
-                 GL_STATIC_DRAW);
-    free(indices);
-
-    rvRenderCmd *cmd = malloc(sizeof(rvRenderCmd));
-    if (!cmd)
-      return EXIT_FAILURE;
-    cmd->vao = vao;
-    cmd->ibo = ibo;
-    cmd->count = mesh->mNumFaces * 3;
-    cmd->first = 0;
-    cmd->shader = program.id;
-    cmd->mode = GL_TRIANGLES;
-    renderer_submit(renderer, cmd);
+    counter++;
   }
+  printf("Added %d meshes.\n", counter);
 
-  aiReleaseImport(scene);
-
-  glBindVertexArray(0);
+  aiReleaseImport(aiScene);
 
   rvCamera *camera =
       camera_create(0.1f, 1000.0f,
@@ -120,7 +91,28 @@ int main() {
 
   printf("Render initialization completed.\n");
 
-  // renderer_submit(renderer, &render_command);
+  rvScene *scene = scene_create();
+  scene_add_object(scene, o);
+
+  for (int i = 0; i < scene->objects.num_children; i++) {
+    rvSceneObject *o = (rvSceneObject *)scene->objects.children[i]->data;
+
+    rvQueueNode *n = o->meshes.front;
+    while (n) {
+      rvRenderCmd *cmd = render_cmd_create();
+      rvMesh *m = (rvMesh *)n->data;
+      cmd->vao = m->renderData.vao;
+      cmd->mode = GL_TRIANGLES;
+      cmd->count = m->numIndices;
+      cmd->first = 0;
+      cmd->shader = program.id;
+
+      renderer_submit(renderer, cmd);
+
+      n = n->next;
+    }
+  }
+
   while (!glfwWindowShouldClose(window.glfwHandle)) {
     shader_set_uniform_mat4fv(&program, "u_Proj", (float *)camera->projMatrix);
     shader_set_uniform_mat4fv(&program, "u_View", (float *)camera->viewMatrix);
@@ -133,7 +125,7 @@ int main() {
 
     double now = glfwGetTime();
     vec3 new_pos = {sin(now) * 30, 10.0f, cos(now) * 30};
-    glm_vec3_dup(new_pos, camera->position);
+    glm_vec3_copy(new_pos, camera->position);
     camera_recalculate_view_matrix(camera);
   }
 
