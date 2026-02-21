@@ -85,4 +85,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     vendor/assimp/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad assimp)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad assimp::assimp)
