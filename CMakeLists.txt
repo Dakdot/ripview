@@ -68,6 +68,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/scene.h
     src/scene_object.h
     src/scene_object.c
+    src/material.h
+    src/material.c
 
     src/util/queue.c
     src/util/queue.h

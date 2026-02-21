@@ -9,6 +9,7 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+#include "material.h"
 #include "mesh.h"
 #include "renderer.h"
 #include "scene.h"
@@ -40,11 +41,11 @@ int main() {
   }
 
   rvShader vertex = {.type = SHADER_TYPE_VERTEX,
-                     .filepath = "/Users/thiagoandrade/Projects/experiments/"
+                     .filepath = "/home/thiagoandrade/Projects/experiments/"
                                  "ripview/assets/shaders/main.vert"};
 
   rvShader fragment = {.type = SHADER_TYPE_FRAGMENT,
-                       .filepath = "/Users/thiagoandrade/Projects/experiments/"
+                       .filepath = "/home/thiagoandrade/Projects/experiments/"
                                    "ripview/assets/shaders/main.frag"};
 
   if (shader_load_from_file(&vertex))
@@ -57,33 +58,72 @@ int main() {
 
   shader_program_link(&program);
 
-  const struct aiScene *aiScene =
-      aiImportFile("/Users/thiagoandrade/Projects/experiments/ripview/assets/"
-                   "models/glTF2/Lantern.glb",
-                   aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-                       aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+  rvMaterial *material = material_create(0, 0, &program);
 
-  if (!aiScene) {
-    perror("Failed to import model.\n");
-    perror(aiGetErrorString());
-    return EXIT_FAILURE;
+  rvSceneObject *o1 = scene_object_create();
+  rvSceneObject *o2 = scene_object_create();
+  {
+    const struct aiScene *aiScene = aiImportFile(
+        "/home/thiagoandrade/Projects/experiments/ripview/assets/"
+        "models/glTF2/Lantern.glb",
+        aiProcess_CalcTangentSpace | aiProcess_Triangulate |
+            aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+
+    if (!aiScene) {
+      perror("Failed to import model.\n");
+      perror(aiGetErrorString());
+      return EXIT_FAILURE;
+    }
+
+    int counter = 0;
+    for (int i = 0; i < aiScene->mNumMeshes; i++) {
+      // for (int i = 0; i < 1; i++) {
+      struct aiMesh *aiMesh = aiScene->mMeshes[i];
+      rvMesh *rvMesh = mesh_create();
+      mesh_upload(rvMesh, aiMesh);
+      scene_object_attach_mesh(o1, rvMesh);
+
+      counter++;
+    }
+    printf("Added %d meshes.\n", counter);
+
+    aiReleaseImport(aiScene);
+  }
+  {
+    const struct aiScene *aiScene = aiImportFile(
+        "/home/thiagoandrade/Projects/experiments/ripview/assets/"
+        "models/glTF2/Fox.glb",
+        aiProcess_CalcTangentSpace | aiProcess_Triangulate |
+            aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+
+    if (!aiScene) {
+      perror("Failed to import model.\n");
+      perror(aiGetErrorString());
+      return EXIT_FAILURE;
+    }
+
+    int counter = 0;
+    for (int i = 0; i < aiScene->mNumMeshes; i++) {
+      // for (int i = 0; i < 1; i++) {
+      struct aiMesh *aiMesh = aiScene->mMeshes[i];
+      rvMesh *rvMesh = mesh_create();
+      mesh_upload(rvMesh, aiMesh);
+      scene_object_attach_mesh(o2, rvMesh);
+
+      counter++;
+    }
+    printf("Added %d meshes.\n", counter);
+
+    aiReleaseImport(aiScene);
   }
 
-  rvSceneObject *o = scene_object_create();
+  scene_object_attach_material(o1, material);
+  scene_object_attach_material(o2, material);
 
-  int counter = 0;
-  for (int i = 0; i < aiScene->mNumMeshes; i++) {
-    // for (int i = 0; i < 1; i++) {
-    struct aiMesh *aiMesh = aiScene->mMeshes[i];
-    rvMesh *rvMesh = mesh_create();
-    mesh_upload(rvMesh, aiMesh);
-    scene_object_attach_mesh(o, rvMesh);
+  scene_object_set_position(o1, 0, 0, 0);
 
-    counter++;
-  }
-  printf("Added %d meshes.\n", counter);
-
-  aiReleaseImport(aiScene);
+  scene_object_set_uniform_scale(o2, 0.1);
+  scene_object_set_position(o2, 10, -12, 10);
 
   rvCamera *camera =
       camera_create(0.1f, 1000.0f,
@@ -92,7 +132,8 @@ int main() {
   printf("Render initialization completed.\n");
 
   rvScene *scene = scene_create();
-  scene_add_object(scene, o);
+  scene_add_object(scene, o1);
+  scene_add_object(scene, o2);
 
   for (int i = 0; i < scene->objects.num_children; i++) {
     rvSceneObject *o = (rvSceneObject *)scene->objects.children[i]->data;
@@ -114,17 +155,13 @@ int main() {
   }
 
   while (!glfwWindowShouldClose(window.glfwHandle)) {
-    shader_set_uniform_mat4fv(&program, "u_Proj", (float *)camera->projMatrix);
-    shader_set_uniform_mat4fv(&program, "u_View", (float *)camera->viewMatrix);
-
-    shader_program_use(&program);
-    renderer_draw(renderer);
+    renderer_draw(scene, camera);
 
     glfwSwapBuffers(window.glfwHandle);
     glfwPollEvents();
 
     double now = glfwGetTime();
-    vec3 new_pos = {sin(now) * 30, 10.0f, cos(now) * 30};
+    vec3 new_pos = {sin(now) * 40, 14.0f, cos(now) * 40};
     glm_vec3_copy(new_pos, camera->position);
     camera_recalculate_view_matrix(camera);
   }

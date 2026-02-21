@@ -4,7 +4,11 @@
 #include "shader.h"
 
 typedef struct rvMaterial {
-  rvShaderProgram program;
+  rvShaderProgram *program;
   vec3 color;
   float roughness;
 } rvMaterial;
+
+rvMaterial *material_create(vec3 color, float roughness,
+                            rvShaderProgram *program);
+void material_destroy(rvMaterial *);

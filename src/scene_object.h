@@ -15,3 +15,5 @@ rvSceneObject *scene_object_create();
 void scene_object_destroy(rvSceneObject *);
 void scene_object_attach_mesh(rvSceneObject *, rvMesh *);
 void scene_object_attach_material(rvSceneObject *, rvMaterial *);
+void scene_object_set_position(rvSceneObject *o, float x, float y, float z);
+void scene_object_set_uniform_scale(rvSceneObject *o, float s);
