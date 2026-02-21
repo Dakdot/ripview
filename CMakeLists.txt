@@ -35,10 +35,7 @@ add_library(glad vendor/glad/src/glad.c)
 target_include_directories(glad PUBLIC vendor/glad/include)
 
 # Assimp
-set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
-set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
-add_subdirectory(vendor/assimp)
+find_package(assimp REQUIRED)
 
 
 #################################
