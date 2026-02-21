@@ -18,6 +18,7 @@ int create_window(rvWindow *window) {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
 
   GLFWwindow *glfwWindow;
   glfwWindow = glfwCreateWindow(window->width, window->height, window->title,
