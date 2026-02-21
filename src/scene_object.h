@@ -13,6 +13,7 @@ typedef struct rvSceneObject {
 
 rvSceneObject *scene_object_create();
 void scene_object_destroy(rvSceneObject *);
+rvSceneObject *scene_object_load_from_file(const char *filepath);
 void scene_object_attach_mesh(rvSceneObject *, rvMesh *);
 void scene_object_attach_material(rvSceneObject *, rvMaterial *);
 void scene_object_set_position(rvSceneObject *o, float x, float y, float z);

@@ -1,8 +1,12 @@
 #include "scene_object.h"
-#include "cglm/vec3.h"
 #include "material.h"
 #include "mesh.h"
 #include "util/queue.h"
+#include <assimp/cimport.h>
+#include <assimp/mesh.h>
+#include <assimp/postprocess.h>
+#include <assimp/scene.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 rvSceneObject *scene_object_create(void) {
@@ -24,6 +28,34 @@ void scene_object_destroy(rvSceneObject *o) {
   if (!o)
     return;
   free(o);
+}
+
+rvSceneObject *scene_object_load_from_file(const char *filepath) {
+  rvSceneObject *o = scene_object_create();
+
+  const struct aiScene *aiScene = aiImportFile(
+      filepath, aiProcess_CalcTangentSpace | aiProcess_Triangulate |
+                    aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+
+  if (!aiScene) {
+    perror("Failed to import model.\n");
+    perror(aiGetErrorString());
+    return NULL;
+  }
+
+  int counter = 0;
+  for (int i = 0; i < aiScene->mNumMeshes; i++) {
+    struct aiMesh *aiMesh = aiScene->mMeshes[i];
+    rvMesh *rvMesh = mesh_create();
+    mesh_upload(rvMesh, aiMesh);
+    scene_object_attach_mesh(o, rvMesh);
+
+    counter++;
+  }
+  printf("Added %d meshes.\n", counter);
+
+  aiReleaseImport(aiScene);
+  return o;
 }
 
 void scene_object_attach_mesh(rvSceneObject *o, rvMesh *m) {

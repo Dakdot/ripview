@@ -60,70 +60,27 @@ int main() {
 
   rvMaterial *material = material_create(0, 0, &program);
 
-  rvSceneObject *o1 = scene_object_create();
-  rvSceneObject *o2 = scene_object_create();
-  {
-    const struct aiScene *aiScene = aiImportFile(
-        "/home/thiagoandrade/Projects/experiments/ripview/assets/"
-        "models/glTF2/Lantern.glb",
-        aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-            aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
-
-    if (!aiScene) {
-      perror("Failed to import model.\n");
-      perror(aiGetErrorString());
-      return EXIT_FAILURE;
-    }
-
-    int counter = 0;
-    for (int i = 0; i < aiScene->mNumMeshes; i++) {
-      // for (int i = 0; i < 1; i++) {
-      struct aiMesh *aiMesh = aiScene->mMeshes[i];
-      rvMesh *rvMesh = mesh_create();
-      mesh_upload(rvMesh, aiMesh);
-      scene_object_attach_mesh(o1, rvMesh);
-
-      counter++;
-    }
-    printf("Added %d meshes.\n", counter);
-
-    aiReleaseImport(aiScene);
-  }
-  {
-    const struct aiScene *aiScene = aiImportFile(
-        "/home/thiagoandrade/Projects/experiments/ripview/assets/"
-        "models/glTF2/Fox.glb",
-        aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-            aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
-
-    if (!aiScene) {
-      perror("Failed to import model.\n");
-      perror(aiGetErrorString());
-      return EXIT_FAILURE;
-    }
-
-    int counter = 0;
-    for (int i = 0; i < aiScene->mNumMeshes; i++) {
-      // for (int i = 0; i < 1; i++) {
-      struct aiMesh *aiMesh = aiScene->mMeshes[i];
-      rvMesh *rvMesh = mesh_create();
-      mesh_upload(rvMesh, aiMesh);
-      scene_object_attach_mesh(o2, rvMesh);
-
-      counter++;
-    }
-    printf("Added %d meshes.\n", counter);
-
-    aiReleaseImport(aiScene);
-  }
+  rvSceneObject *o1 = scene_object_load_from_file(
+      "/home/thiagoandrade/Projects/experiments/ripview/assets/"
+      "models/glTF2/Lantern.glb");
+  rvSceneObject *o2 = scene_object_load_from_file(
+      "/home/thiagoandrade/Projects/experiments/ripview/assets/"
+      "models/glTF2/Fox.glb");
+  rvSceneObject *o3 =
+      scene_object_load_from_file("/home/thiagoandrade/Projects/experiments/"
+                                  "ripview/assets/models/glTF2/Avocado.glb");
 
   scene_object_attach_material(o1, material);
   scene_object_attach_material(o2, material);
+  scene_object_attach_material(o3, material);
 
   scene_object_set_position(o1, 0, 0, 0);
 
   scene_object_set_uniform_scale(o2, 0.1);
   scene_object_set_position(o2, 10, -12, 10);
+
+  scene_object_set_position(o3, -10, -12, 10);
+  scene_object_set_uniform_scale(o3, 100);
 
   rvCamera *camera =
       camera_create(0.1f, 1000.0f,
@@ -134,6 +91,7 @@ int main() {
   rvScene *scene = scene_create();
   scene_add_object(scene, o1);
   scene_add_object(scene, o2);
+  scene_add_object(scene, o3);
 
   for (int i = 0; i < scene->objects.num_children; i++) {
     rvSceneObject *o = (rvSceneObject *)scene->objects.children[i]->data;
