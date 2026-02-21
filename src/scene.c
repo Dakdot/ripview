@@ -5,6 +5,10 @@
 
 rvScene *scene_create(void) {
   rvScene *s = malloc(sizeof(rvScene));
+  s->objects.capacity = 0;
+  s->objects.children = NULL;
+  s->objects.num_children = 0;
+  s->objects.data = 0;
   return s;
 }
 
