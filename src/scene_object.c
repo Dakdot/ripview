@@ -35,7 +35,8 @@ rvSceneObject *scene_object_load_from_file(const char *filepath) {
 
   const struct aiScene *aiScene = aiImportFile(
       filepath, aiProcess_CalcTangentSpace | aiProcess_Triangulate |
-                    aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+                    aiProcess_GenNormals | aiProcess_JoinIdenticalVertices |
+                    aiProcess_SortByPType);
 
   if (!aiScene) {
     perror("Failed to import model.\n");

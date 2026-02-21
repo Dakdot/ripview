@@ -24,16 +24,22 @@ void mesh_upload(rvMesh *rm, struct aiMesh *m) {
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
 
-  uint32_t buffers[2]; // [0] is VBO, [1] is IBO
-  glGenBuffers(2, buffers);
+  uint32_t buffers[3]; // [0] is VBO_pos, [1] is VBO_norm, [2] is IBO
+  glGenBuffers(3, buffers);
+
   glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
   glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m->mNumVertices * 3,
                m->mVertices, GL_STATIC_DRAW);
-
-  glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+  glEnableVertexAttribArray(0);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+  glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m->mNumVertices * 3,
+               m->mNormals, GL_STATIC_DRAW);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+  glEnableVertexAttribArray(1);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[2]);
   uint32_t *indices = malloc(sizeof(uint32_t) * m->mNumFaces * 3);
   if (!indices)
     return;

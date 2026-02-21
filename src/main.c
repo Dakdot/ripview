@@ -48,9 +48,15 @@ int main() {
                        .filepath = "/home/thiagoandrade/Projects/experiments/"
                                    "ripview/assets/shaders/main.frag"};
 
+  rvShader lampFrag = {.type = SHADER_TYPE_FRAGMENT,
+                       .filepath = "/home/thiagoandrade/Projects/experiments/"
+                                   "ripview/assets/shaders/lamp.frag"};
+
   if (shader_load_from_file(&vertex))
     return EXIT_FAILURE;
   if (shader_load_from_file(&fragment))
+    return EXIT_FAILURE;
+  if (shader_load_from_file(&lampFrag))
     return EXIT_FAILURE;
 
   rvShaderProgram program = {.vertexShader = &vertex,
@@ -58,7 +64,17 @@ int main() {
 
   shader_program_link(&program);
 
-  rvMaterial *material = material_create(0, 0, &program);
+  rvShaderProgram lampProgram = {.vertexShader = &vertex,
+                                 .fragmentShader = &lampFrag};
+  shader_program_link(&lampProgram);
+
+  vec3 c1 = {1.0f, 0.0f, 1.0f};
+  vec3 c2 = {0.992, 0.706, 0.082};
+  vec3 c3 = {0.22, 0.757, 0.114};
+  rvMaterial *mtr1 = material_create(c1, 0.2, &program);
+  rvMaterial *mtr2 = material_create(c2, 0.7, &program);
+  rvMaterial *mtr3 = material_create(c3, 0.5, &program);
+  rvMaterial *lampMaterial = material_create(c1, 1.0, &lampProgram);
 
   rvSceneObject *o1 = scene_object_load_from_file(
       "/home/thiagoandrade/Projects/experiments/ripview/assets/"
@@ -70,9 +86,14 @@ int main() {
       scene_object_load_from_file("/home/thiagoandrade/Projects/experiments/"
                                   "ripview/assets/models/glTF2/Avocado.glb");
 
-  scene_object_attach_material(o1, material);
-  scene_object_attach_material(o2, material);
-  scene_object_attach_material(o3, material);
+  rvSceneObject *lamp =
+      scene_object_load_from_file("/home/thiagoandrade/Projects/experiments/"
+                                  "ripview/assets/models/glTF2/Box.glb");
+
+  scene_object_attach_material(o1, mtr1);
+  scene_object_attach_material(o2, mtr2);
+  scene_object_attach_material(o3, mtr3);
+  scene_object_attach_material(lamp, lampMaterial);
 
   scene_object_set_position(o1, 0, 0, 0);
 
@@ -81,6 +102,9 @@ int main() {
 
   scene_object_set_position(o3, -10, -12, 10);
   scene_object_set_uniform_scale(o3, 100);
+
+  scene_object_set_uniform_scale(lamp, 5);
+  scene_object_set_position(lamp, 25, 15, 25);
 
   rvCamera *camera =
       camera_create(0.1f, 1000.0f,
@@ -92,6 +116,7 @@ int main() {
   scene_add_object(scene, o1);
   scene_add_object(scene, o2);
   scene_add_object(scene, o3);
+  scene_add_object(scene, lamp);
 
   for (int i = 0; i < scene->objects.num_children; i++) {
     rvSceneObject *o = (rvSceneObject *)scene->objects.children[i]->data;

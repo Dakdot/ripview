@@ -125,9 +125,6 @@ int shader_program_link(rvShaderProgram *program) {
     return EXIT_FAILURE;
   }
 
-  glDeleteShader(program->vertexShader->id);
-  glDeleteShader(program->fragmentShader->id);
-
   program->id = id;
 
   return EXIT_SUCCESS;
@@ -146,6 +143,14 @@ GLuint shader_get_uniform_loc(rvShaderProgram *p, const char *uniformName) {
     return GL_INVALID_VALUE;
   shader_program_use(p);
   return glGetUniformLocation(p->id, uniformName);
+}
+
+void shader_set_uniform_1f(rvShaderProgram *p, const char *uniformName,
+                           float value) {
+  GLuint uniformLoc = shader_get_uniform_loc(p, uniformName);
+  if (uniformLoc == GL_INVALID_VALUE || uniformLoc == GL_INVALID_OPERATION)
+    return;
+  glUniform1f(uniformLoc, value);
 }
 
 void shader_set_uniform_3fv(rvShaderProgram *p, const char *uniformName,

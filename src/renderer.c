@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "cglm/affine.h"
 #include "cglm/mat4.h"
+#include "cglm/simd/sse2/mat4.h"
 #include "cglm/types.h"
 #include "mesh.h"
 #include "scene.h"
@@ -12,6 +13,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 #define GL_CHECK_ERROR() assert(glGetError() == 0)
 
@@ -55,20 +57,31 @@ void renderer_draw(rvScene *scene, rvCamera *camera) {
 
   for (int i = 0; i < scene->objects.num_children; i++) {
     rvSceneObject *o = (rvSceneObject *)scene->objects.children[i]->data;
+    rvShaderProgram *prog = o->material->program;
 
-    mat4 transformMatrix;
-    glm_mat4_identity(transformMatrix);
-    glm_translate(transformMatrix, o->transform.position);
-    glm_scale(transformMatrix, o->transform.scale);
+    mat4 modelMatrix;
+    glm_mat4_identity(modelMatrix);
+    glm_translate(modelMatrix, o->transform.position);
+    glm_scale(modelMatrix, o->transform.scale);
 
-    shader_set_uniform_mat4fv(o->material->program, "u_Proj",
-                              (float *)camera->projMatrix);
-    shader_set_uniform_mat4fv(o->material->program, "u_View",
-                              (float *)camera->viewMatrix);
-    shader_set_uniform_mat4fv(o->material->program, "u_Model",
-                              (float *)transformMatrix);
+    mat4 normalMatrix;
+    glm_mat4_inv_sse2(modelMatrix, normalMatrix);
+    glm_mat4_transpose(normalMatrix);
 
-    shader_program_use(o->material->program);
+    vec3 lightColor = {1.0f, 1.0f, 1.0f};
+    vec3 lightPos = {25, 15, 25};
+
+    shader_set_uniform_mat4fv(prog, "u_Proj", (float *)camera->projMatrix);
+    shader_set_uniform_mat4fv(prog, "u_View", (float *)camera->viewMatrix);
+    shader_set_uniform_mat4fv(prog, "u_Model", (float *)modelMatrix);
+    shader_set_uniform_mat4fv(prog, "u_Normal", (float *)normalMatrix);
+    shader_set_uniform_3fv(prog, "u_ObjColor", o->material->color);
+    shader_set_uniform_1f(prog, "u_Roughness", o->material->roughness);
+    shader_set_uniform_3fv(prog, "u_ViewPos", camera->position);
+    shader_set_uniform_3fv(prog, "u_LightColor", lightColor);
+    shader_set_uniform_3fv(prog, "u_LightPos", lightPos);
+
+    shader_program_use(prog);
     rvQueueNode *n = o->meshes.front;
     while (n) {
       rvMesh *m = (rvMesh *)n->data;

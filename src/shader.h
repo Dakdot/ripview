@@ -22,5 +22,10 @@ typedef struct {
 int shader_load_from_file(rvShader *shader);
 int shader_program_link(rvShaderProgram *program);
 void shader_program_use(rvShaderProgram *p);
-void shader_set_uniform_mat4fv(rvShaderProgram* p, const char* uniformName, float* value);
-void shader_set_uniform_3fv(rvShaderProgram* p, const char* uniformName, float* value);
+
+void shader_set_uniform_1f(rvShaderProgram *, const char *uniformName,
+                           float value);
+void shader_set_uniform_mat4fv(rvShaderProgram *p, const char *uniformName,
+                               float *value);
+void shader_set_uniform_3fv(rvShaderProgram *p, const char *uniformName,
+                            float *value);
