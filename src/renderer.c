@@ -65,7 +65,7 @@ void renderer_draw(rvScene *scene, rvCamera *camera) {
     glm_scale(modelMatrix, o->transform.scale);
 
     mat4 normalMatrix;
-    glm_mat4_inv_sse2(modelMatrix, normalMatrix);
+    glm_mat4_inv(modelMatrix, normalMatrix);
     glm_mat4_transpose(normalMatrix);
 
     vec3 lightColor = {1.0f, 1.0f, 1.0f};
