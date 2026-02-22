@@ -2,7 +2,6 @@
 #include "camera.h"
 #include "cglm/affine.h"
 #include "cglm/mat4.h"
-#include "cglm/simd/sse2/mat4.h"
 #include "cglm/types.h"
 #include "mesh.h"
 #include "scene.h"
@@ -91,31 +90,6 @@ void renderer_draw(rvScene *scene, rvCamera *camera) {
       n = n->next;
     }
   }
-
-  // rvQueue *queue = &r->queue;
-  // int call_idx = 0;
-
-  // rvQueueNode *head = queue->front;
-
-  // while (head) {
-  //   rvRenderCmd *cmd = (rvRenderCmd *)head->data;
-  //   if (!cmd)
-  //     break;
-  //   call_idx++;
-
-  //   glUseProgram(cmd->shader);
-  //   glBindVertexArray(cmd->vao);
-  //   glDrawElements(cmd->mode, cmd->count, GL_UNSIGNED_INT,
-  //                  (void *)(uintptr_t)cmd->first);
-
-  //   printf("Draw Call %03d: shader: %d, vao: %d, count: %d\n", call_idx,
-  //          cmd->shader, cmd->vao, cmd->count);
-
-  //   head = head->next;
-  // }
-
-  // glBindVertexArray(0);
-  // glUseProgram(0);
 }
 
 rvRenderCmd *render_cmd_create(void) {

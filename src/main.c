@@ -1,8 +1,4 @@
 // clang-format off
-#include "assimp/cimport.h"
-#include "assimp/postprocess.h"
-#include "assimp/scene.h"
-#include "assimp/mesh.h"
 #include "camera.h"
 #include "cglm/types.h"
 #include "cglm/vec3.h"
@@ -10,12 +6,10 @@
 #include "GLFW/glfw3.h"
 
 #include "material.h"
-#include "mesh.h"
 #include "renderer.h"
 #include "scene.h"
 #include "scene_object.h"
 #include "shader.h"
-#include "util/queue.h"
 #include "window.h"
 
 #include <math.h>
@@ -110,32 +104,13 @@ int main() {
       camera_create(0.1f, 1000.0f,
                     camera_calculate_aspect(window.width, window.height), 1.07);
 
-  printf("Render initialization completed.\n");
-
   rvScene *scene = scene_create();
   scene_add_object(scene, o1);
   scene_add_object(scene, o2);
   scene_add_object(scene, o3);
   scene_add_object(scene, lamp);
 
-  for (int i = 0; i < scene->objects.num_children; i++) {
-    rvSceneObject *o = (rvSceneObject *)scene->objects.children[i]->data;
-
-    rvQueueNode *n = o->meshes.front;
-    while (n) {
-      rvRenderCmd *cmd = render_cmd_create();
-      rvMesh *m = (rvMesh *)n->data;
-      cmd->vao = m->renderData.vao;
-      cmd->mode = GL_TRIANGLES;
-      cmd->count = m->numIndices;
-      cmd->first = 0;
-      cmd->shader = program.id;
-
-      renderer_submit(renderer, cmd);
-
-      n = n->next;
-    }
-  }
+  printf("Render initialization completed.\n");
 
   while (!glfwWindowShouldClose(window.glfwHandle)) {
     renderer_draw(scene, camera);
