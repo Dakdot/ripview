@@ -5,10 +5,12 @@
 
 typedef struct rvMaterial {
   rvShaderProgram *program;
-  vec3 color;
-  float roughness;
+  vec3 ambient;
+  vec3 diffuse;
+  vec3 specular;
+  float shininess;
 } rvMaterial;
 
-rvMaterial *material_create(vec3 color, float roughness,
-                            rvShaderProgram *program);
+rvMaterial *material_create(vec3 ambient, vec3 diffuse, vec3 specular,
+                            float shininess, rvShaderProgram *program);
 void material_destroy(rvMaterial *);

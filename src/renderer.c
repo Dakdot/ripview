@@ -74,8 +74,10 @@ void renderer_draw(rvScene *scene, rvCamera *camera) {
     shader_set_uniform_mat4fv(prog, "u_View", (float *)camera->viewMatrix);
     shader_set_uniform_mat4fv(prog, "u_Model", (float *)modelMatrix);
     shader_set_uniform_mat4fv(prog, "u_Normal", (float *)normalMatrix);
-    shader_set_uniform_3fv(prog, "u_ObjColor", o->material->color);
-    shader_set_uniform_1f(prog, "u_Roughness", o->material->roughness);
+    shader_set_uniform_3fv(prog, "material.diffuse", o->material->diffuse);
+    shader_set_uniform_3fv(prog, "material.ambient", o->material->ambient);
+    shader_set_uniform_3fv(prog, "material.specular", o->material->specular);
+    shader_set_uniform_1f(prog, "material.shininess", o->material->shininess);
     shader_set_uniform_3fv(prog, "u_ViewPos", camera->position);
     shader_set_uniform_3fv(prog, "u_LightColor", lightColor);
     shader_set_uniform_3fv(prog, "u_LightPos", lightPos);

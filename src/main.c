@@ -65,10 +65,12 @@ int main() {
   vec3 c1 = {1.0f, 0.0f, 1.0f};
   vec3 c2 = {0.992, 0.706, 0.082};
   vec3 c3 = {0.22, 0.757, 0.114};
-  rvMaterial *mtr1 = material_create(c1, 0.2, &program);
-  rvMaterial *mtr2 = material_create(c2, 0.7, &program);
-  rvMaterial *mtr3 = material_create(c3, 0.5, &program);
-  rvMaterial *lampMaterial = material_create(c1, 1.0, &lampProgram);
+  vec3 spec = {0.5, 0.5, 0.5};
+  rvMaterial *mtr1 = material_create(c1, c1, spec, 32.0f, &program);
+  rvMaterial *mtr2 = material_create(c2, c2, spec, 64.0f, &program);
+  rvMaterial *mtr3 = material_create(c3, c3, spec, 256.0f, &program);
+  rvMaterial *lampMaterial = material_create(GLM_VEC3_ZERO, GLM_VEC3_ZERO,
+                                             GLM_VEC3_ZERO, 0.0f, &lampProgram);
 
   rvSceneObject *o1 = scene_object_load_from_file(
       "/home/thiagoandrade/Projects/experiments/ripview/assets/"
