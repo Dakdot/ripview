@@ -3,13 +3,16 @@
 // clang-format off
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
+#include <string>
 // clang-format on
 
-typedef struct {
+namespace Ripview {
+struct Window {
+  Window(int width, int height, std::string title);
+
   int width;
   int height;
-  const char *title;
+  std::string title;
   GLFWwindow *glfwHandle;
-} rvWindow;
-
-int create_window(rvWindow *window);
+};
+} // namespace Ripview

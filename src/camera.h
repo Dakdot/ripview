@@ -15,4 +15,4 @@ typedef struct rvCamera {
 rvCamera *camera_create(float near, float far, float aspect, float fov);
 void camera_destroy(rvCamera *c);
 float camera_calculate_aspect(int width, int height);
-void camera_recalculate_view_matrix(rvCamera* c);
+void camera_recalculate_view_matrix(rvCamera *c);

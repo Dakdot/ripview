@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 3.13)
 #                               #
 #################################
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS
     ON CACHE BOOL
     "Enable/Disable output of compile commands during generation."
@@ -47,17 +50,11 @@ find_package(assimp REQUIRED)
 project(ripview)
 
 # SOURCES:
-add_executable(${PROJECT_NAME} src/main.c)
+add_executable(${PROJECT_NAME} src/main.cpp)
 
 target_sources(${PROJECT_NAME} PRIVATE
-    src/main.c
-
     src/shader.c
     src/shader.h
-    src/image.c
-    src/image.h
-    src/window.c
-    src/window.h
     src/mesh.c
     src/mesh.h
     src/renderer.c
@@ -70,6 +67,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     src/scene_object.c
     src/material.h
     src/material.c
+    src/Window.cpp
+    src/Window.hpp
 
     src/util/queue.c
     src/util/queue.h

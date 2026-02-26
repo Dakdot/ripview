@@ -1,32 +1,37 @@
 // clang-format off
-#include "camera.h"
 #include "cglm/types.h"
 #include "cglm/vec3.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+#include "camera.h"
 #include "material.h"
 #include "renderer.h"
 #include "scene.h"
 #include "scene_object.h"
 #include "shader.h"
-#include "window.h"
+#include "Window.hpp"
 
+#include <cstdlib>
 #include <math.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string>
+#include <time.h>
 // clang-format on
 
 #define GL_CHECK_ERROR() assert(glGetError() == 0)
 
 int main() {
-  rvWindow window = {.width = 800, .height = 600, .title = "Ripview"};
-  if (create_window(&window))
+  std::string assetsHome = std::getenv("RIPVIEW_ROOT_DIR");
+  if (assetsHome.empty()) {
+    perror("Environment variable RIPVIEW_ROOT_DIR is not set.\n");
     return EXIT_FAILURE;
+  }
+
+  Ripview::Window window(800, 600, "Ripview");
 
   rvRenderer *renderer = renderer_create();
   if (!renderer) {
@@ -34,17 +39,20 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  rvShader vertex = {.type = SHADER_TYPE_VERTEX,
-                     .filepath = "/home/thiagoandrade/Projects/experiments/"
-                                 "ripview/assets/shaders/main.vert"};
+  rvShader vertex = {
+      .type = SHADER_TYPE_VERTEX,
+      .filepath =
+          "/Users/thiagoandrade/Projects/ripview/assets/shaders/main.vert"};
 
-  rvShader fragment = {.type = SHADER_TYPE_FRAGMENT,
-                       .filepath = "/home/thiagoandrade/Projects/experiments/"
-                                   "ripview/assets/shaders/main.frag"};
+  rvShader fragment = {
+      .type = SHADER_TYPE_FRAGMENT,
+      .filepath =
+          "/Users/thiagoandrade/Projects/ripview/assets/shaders/main.frag"};
 
-  rvShader lampFrag = {.type = SHADER_TYPE_FRAGMENT,
-                       .filepath = "/home/thiagoandrade/Projects/experiments/"
-                                   "ripview/assets/shaders/lamp.frag"};
+  rvShader lampFrag = {
+      .type = SHADER_TYPE_FRAGMENT,
+      .filepath =
+          "/Users/thiagoandrade/Projects/ripview/assets/shaders/lamp.vert"};
 
   if (shader_load_from_file(&vertex))
     return EXIT_FAILURE;
@@ -73,17 +81,16 @@ int main() {
                                              GLM_VEC3_ZERO, 0.0f, &lampProgram);
 
   rvSceneObject *o1 = scene_object_load_from_file(
-      "/home/thiagoandrade/Projects/experiments/ripview/assets/"
-      "models/glTF2/Lantern.glb");
+      "/Users/thiagoandrade/Projects/ripview/assets/models/glTF2/Lantern.glb");
   rvSceneObject *o2 = scene_object_load_from_file(
-      "/home/thiagoandrade/Projects/experiments/ripview/assets/"
+      "/Users/thiagoandrade/Projects/experiments/ripview/assets/"
       "models/glTF2/Fox.glb");
   rvSceneObject *o3 =
-      scene_object_load_from_file("/home/thiagoandrade/Projects/experiments/"
+      scene_object_load_from_file("/Users/thiagoandrade/Projects/experiments/"
                                   "ripview/assets/models/glTF2/Avocado.glb");
 
   rvSceneObject *lamp =
-      scene_object_load_from_file("/home/thiagoandrade/Projects/experiments/"
+      scene_object_load_from_file("/Users/thiagoandrade/Projects/experiments/"
                                   "ripview/assets/models/glTF2/Box.glb");
 
   scene_object_attach_material(o1, mtr1);
@@ -121,7 +128,7 @@ int main() {
     glfwPollEvents();
 
     double now = glfwGetTime();
-    vec3 new_pos = {sin(now) * 40, 14.0f, cos(now) * 40};
+    vec3 new_pos = {(float)sin(now) * 40, 14.0f, (float)cos(now) * 40};
     glm_vec3_copy(new_pos, camera->position);
     camera_recalculate_view_matrix(camera);
   }
