@@ -40,6 +40,9 @@ target_include_directories(glad PUBLIC vendor/glad/include)
 # Assimp
 find_package(assimp REQUIRED)
 
+# GLM
+find_package(glm REQUIRED)
+
 
 #################################
 #                               #
@@ -84,4 +87,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     vendor/assimp/include
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad assimp::assimp)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad assimp::assimp glm::glm)
+set_property(TARGET glm::glm PROPERTY SYSTEM TRUE)
+set_property(TARGET assimp::assimp PROPERTY SYSTEM TRUE)
