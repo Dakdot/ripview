@@ -2,4 +2,4 @@ CompileFlags:
   Add:
     - "xc"
 Diagnostics:
-  MissingIncludes: Strict
+  MissingIncludes: None
