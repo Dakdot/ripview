@@ -5,7 +5,7 @@
 namespace Ripview {
 
 struct Shader {
-  Shader(const std::string &filepath);
+  Shader(const std::string &filepath, unsigned int type);
 
   int mId;
   int mType;

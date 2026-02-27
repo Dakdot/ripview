@@ -1,5 +1,6 @@
 #!/bin/bash
 EXECUTABLE_NAME=ripview
+export RIPVIEW_ROOT_DIR="$(PWD)"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     NUM_PROC="$(sysctl -n hw.logicalcpu)"

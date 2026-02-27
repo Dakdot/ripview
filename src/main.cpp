@@ -1,15 +1,14 @@
 // clang-format off
-#include "cglm/types.h"
-#include "cglm/vec3.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
+#include <spdlog/spdlog.h>
 
-#include "camera.h"
-#include "material.h"
-#include "renderer.h"
-#include "scene.h"
-#include "scene_object.h"
-#include "shader.h"
+#include "Material.hpp"
+#include "Renderer.hpp"
+#include "SceneObject.hpp"
+#include "Shader.hpp"
+#include "ShaderProgram.hpp"
+#include "Camera.hpp"
 #include "Window.hpp"
 
 #include <cstdlib>
@@ -25,112 +24,94 @@
 #define GL_CHECK_ERROR() assert(glGetError() == 0)
 
 int main() {
-  std::string assetsHome = std::getenv("RIPVIEW_ROOT_DIR");
-  if (assetsHome.empty()) {
-    perror("Environment variable RIPVIEW_ROOT_DIR is not set.\n");
+  spdlog::set_level(spdlog::level::trace);
+
+  const char *rootDirCStr = std::getenv("RIPVIEW_ROOT_DIR");
+  if (!rootDirCStr) {
+    spdlog::critical("Environment variable RIPVIEW_ROOT_DIR is not set.");
     return EXIT_FAILURE;
   }
+
+  const std::string rootDir(rootDirCStr);
 
   Ripview::Window window(800, 600, "Ripview");
 
-  rvRenderer *renderer = renderer_create();
-  if (!renderer) {
-    perror("Failed to created renderer.\n");
-    return EXIT_FAILURE;
-  }
+  Ripview::Renderer renderer;
 
-  rvShader vertex = {
-      .type = SHADER_TYPE_VERTEX,
-      .filepath =
-          "/Users/thiagoandrade/Projects/ripview/assets/shaders/main.vert"};
+  Ripview::Shader vertex(rootDir + "/assets/shaders/main.vert",
+                         GL_VERTEX_SHADER);
+  Ripview::Shader fragment(rootDir + "/assets/shaders/main.frag",
+                           GL_FRAGMENT_SHADER);
+  Ripview::Shader lampFrag(rootDir + "/assets/shaders/lamp.frag",
+                           GL_FRAGMENT_SHADER);
 
-  rvShader fragment = {
-      .type = SHADER_TYPE_FRAGMENT,
-      .filepath =
-          "/Users/thiagoandrade/Projects/ripview/assets/shaders/main.frag"};
+  Ripview::ShaderProgram program("Main");
+  program.AttachShader(vertex);
+  program.AttachShader(fragment);
+  program.Link();
 
-  rvShader lampFrag = {
-      .type = SHADER_TYPE_FRAGMENT,
-      .filepath =
-          "/Users/thiagoandrade/Projects/ripview/assets/shaders/lamp.vert"};
+  Ripview::ShaderProgram lampProgram("Lamp");
+  program.AttachShader(vertex);
+  program.AttachShader(lampFrag);
+  program.Link();
 
-  if (shader_load_from_file(&vertex))
-    return EXIT_FAILURE;
-  if (shader_load_from_file(&fragment))
-    return EXIT_FAILURE;
-  if (shader_load_from_file(&lampFrag))
-    return EXIT_FAILURE;
+  glm::vec3 c1 = {1.0f, 0.0f, 1.0f};
+  glm::vec3 c2 = {0.992, 0.706, 0.082};
+  glm::vec3 c3 = {0.22, 0.757, 0.114};
+  glm::vec3 spec = {0.5, 0.5, 0.5};
 
-  rvShaderProgram program = {.vertexShader = &vertex,
-                             .fragmentShader = &fragment};
+  Ripview::Material mtr1 = {.program = program,
+                            .ambient = c1,
+                            .diffuse = c1,
+                            .specular = spec,
+                            .shininess = 0.7f};
 
-  shader_program_link(&program);
+  Ripview::Material lampMaterial = {
+      .program = lampProgram,
+  };
 
-  rvShaderProgram lampProgram = {.vertexShader = &vertex,
-                                 .fragmentShader = &lampFrag};
-  shader_program_link(&lampProgram);
+  Ripview::SceneObject o1(rootDir + "/assets/models/glTF2/Lantern.glb");
+  o1.mMaterial = &mtr1;
 
-  vec3 c1 = {1.0f, 0.0f, 1.0f};
-  vec3 c2 = {0.992, 0.706, 0.082};
-  vec3 c3 = {0.22, 0.757, 0.114};
-  vec3 spec = {0.5, 0.5, 0.5};
-  rvMaterial *mtr1 = material_create(c1, c1, spec, 32.0f, &program);
-  rvMaterial *mtr2 = material_create(c2, c2, spec, 64.0f, &program);
-  rvMaterial *mtr3 = material_create(c3, c3, spec, 256.0f, &program);
-  rvMaterial *lampMaterial = material_create(GLM_VEC3_ZERO, GLM_VEC3_ZERO,
-                                             GLM_VEC3_ZERO, 0.0f, &lampProgram);
+  // rvSceneObject *o2 = scene_object_load_from_file(
+  //     "/Users/thiagoandrade/Projects/experiments/ripview/assets/"
+  //     "models/glTF2/Fox.glb");
+  // rvSceneObject *o3 =
+  //     scene_object_load_from_file("/Users/thiagoandrade/Projects/experiments/"
+  //                                 "ripview/assets/models/glTF2/Avocado.glb");
 
-  rvSceneObject *o1 = scene_object_load_from_file(
-      "/Users/thiagoandrade/Projects/ripview/assets/models/glTF2/Lantern.glb");
-  rvSceneObject *o2 = scene_object_load_from_file(
-      "/Users/thiagoandrade/Projects/experiments/ripview/assets/"
-      "models/glTF2/Fox.glb");
-  rvSceneObject *o3 =
-      scene_object_load_from_file("/Users/thiagoandrade/Projects/experiments/"
-                                  "ripview/assets/models/glTF2/Avocado.glb");
+  // rvSceneObject *lamp =
+  //     scene_object_load_from_file("/Users/thiagoandrade/Projects/experiments/"
+  //                                 "ripview/assets/models/glTF2/Box.glb");
 
-  rvSceneObject *lamp =
-      scene_object_load_from_file("/Users/thiagoandrade/Projects/experiments/"
-                                  "ripview/assets/models/glTF2/Box.glb");
+  // scene_object_attach_material(o1, mtr1);
+  // scene_object_attach_material(o2, mtr2);
+  // scene_object_attach_material(o3, mtr3);
+  // scene_object_attach_material(lamp, lampMaterial);
 
-  scene_object_attach_material(o1, mtr1);
-  scene_object_attach_material(o2, mtr2);
-  scene_object_attach_material(o3, mtr3);
-  scene_object_attach_material(lamp, lampMaterial);
+  // scene_object_set_position(o1, 0, 0, 0);
 
-  scene_object_set_position(o1, 0, 0, 0);
+  // scene_object_set_uniform_scale(o2, 0.1);
+  // scene_object_set_position(o2, 10, -12, 10);
 
-  scene_object_set_uniform_scale(o2, 0.1);
-  scene_object_set_position(o2, 10, -12, 10);
+  // scene_object_set_position(o3, -10, -12, 10);
+  // scene_object_set_uniform_scale(o3, 100);
 
-  scene_object_set_position(o3, -10, -12, 10);
-  scene_object_set_uniform_scale(o3, 100);
+  // scene_object_set_uniform_scale(lamp, 5);
+  // scene_object_set_position(lamp, 25, 15, 25);
 
-  scene_object_set_uniform_scale(lamp, 5);
-  scene_object_set_position(lamp, 25, 15, 25);
-
-  rvCamera *camera =
-      camera_create(0.1f, 1000.0f,
-                    camera_calculate_aspect(window.width, window.height), 1.07);
-
-  rvScene *scene = scene_create();
-  scene_add_object(scene, o1);
-  scene_add_object(scene, o2);
-  scene_add_object(scene, o3);
-  scene_add_object(scene, lamp);
+  Ripview::Camera camera(0.1f, 500.0f,
+                         Ripview::Camera::CalculateAspectRatio(800, 600), 1.13);
 
   printf("Render initialization completed.\n");
 
   while (!glfwWindowShouldClose(window.glfwHandle)) {
-    renderer_draw(scene, camera);
+    renderer.Draw(o1, camera);
 
     glfwSwapBuffers(window.glfwHandle);
     glfwPollEvents();
 
     double now = glfwGetTime();
-    vec3 new_pos = {(float)sin(now) * 40, 14.0f, (float)cos(now) * 40};
-    glm_vec3_copy(new_pos, camera->position);
-    camera_recalculate_view_matrix(camera);
   }
 
   glfwTerminate();

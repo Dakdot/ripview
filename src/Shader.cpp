@@ -1,25 +1,63 @@
 #include "Shader.hpp"
-#include "shader.h"
 
+#include <csignal>
 #include <cstddef>
-#include <fstream>
-#include <ios>
 #include <spdlog/spdlog.h>
 #include <string>
 #include <vector>
 
+#include "glad/glad.h"
+
 namespace Ripview {
 
-Shader::Shader(const std::string &filepath) : mFilepath(filepath) {
-  std::ifstream file(filepath);
-  std::streamsize size = file.tellg();
-  file.seekg(0, std::ios::beg);
-
-  std::vector<char> buffer(size);
-  if (!file.read(buffer.data(), size)) {
-    spdlog::error("Failed to read shader file: {}", filepath);
-    return;
+int read_file(const char *filepath, char **data) {
+  FILE *fptr = NULL;
+  fptr = fopen(filepath, "r");
+  if (fptr == NULL) {
+    perror("Failed to open file.\n");
+    return EXIT_FAILURE;
   }
+
+  if (fseek(fptr, 0, SEEK_END)) {
+    perror("Failed to seek file end.\n");
+    fclose(fptr);
+    return EXIT_FAILURE;
+  }
+
+  long file_size_long = ftell(fptr);
+  if (file_size_long == -1) {
+    perror("Failed to determine file size.\n");
+    fclose(fptr);
+    return EXIT_FAILURE;
+  }
+
+  size_t file_size = (size_t)file_size_long;
+  fseek(fptr, 0, SEEK_SET);
+
+  char *buffer = new char[file_size + 1];
+  if (buffer == NULL) {
+    perror("Failed to allocated memory for file read.\n");
+    fclose(fptr);
+    return EXIT_FAILURE;
+  }
+
+  size_t bytes_read = fread(buffer, 1, file_size, fptr);
+  if (bytes_read != file_size) {
+    perror("Incomplete file read.\n");
+    free(buffer);
+    fclose(fptr);
+    return EXIT_FAILURE;
+  }
+  buffer[file_size] = '\0';
+  fclose(fptr);
+  *data = buffer;
+  return EXIT_SUCCESS;
+}
+
+Shader::Shader(const std::string &filepath, unsigned int type)
+    : mFilepath(filepath), mType(type) {
+  char *buffer;
+  read_file(filepath.c_str(), &buffer);
 
   unsigned int id = glCreateShader(mType);
   if (!id) {
@@ -27,9 +65,10 @@ Shader::Shader(const std::string &filepath) : mFilepath(filepath) {
     return;
   }
 
-  glShaderSource(id, 1, (char const *const *)buffer.data(), NULL);
+  glShaderSource(id, 1, (char const *const *)&buffer, NULL);
 
   glCompileShader(id);
+  delete[] buffer;
 
   int compile_status;
   glGetShaderiv(id, GL_COMPILE_STATUS, &compile_status);
